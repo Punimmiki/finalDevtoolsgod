@@ -2,25 +2,27 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE    = 'noychiffon05/fastapi-webhook:latest'
+        FRONTEND_IMAGE  = 'your-frontend-image:latest'
+        BACKEND_IMAGE   = 'your-backend-image:latest'
         REMOTE_HOST     = 'g64070172@34.142.247.166'
         SSH_CREDENTIALS = 'ssh-prod_instance'
     }
 
     stages {
-        stage('Login to Docker Hub') {
+        stage('Build Frontend') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USER')]) {
-                    sh 'echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USER --password-stdin'
+                script {
+                    // Build the Vue.js frontend
+                    sh "docker build -t ${FRONTEND_IMAGE} -f frontend/Dockerfile frontend/"
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Backend') {
             steps {
                 script {
-                    // Build the Docker image
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    // Build the Node.js backend
+                    sh "docker build -t ${BACKEND_IMAGE} -f backend/Dockerfile backend/"
                 }
             }
         }
@@ -31,7 +33,8 @@ pipeline {
                     sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker stop \$(docker ps -a -q) || true'"
                     sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rm \$(docker ps -a -q) || true'"
                     sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rmi \$(docker images -q) || true'"
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name fastapi-webhook -p 8085:80 $DOCKER_IMAGE'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name frontend -p 8080:80 ${FRONTEND_IMAGE}'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name backend ${BACKEND_IMAGE}'"
                     sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -a'"
                 }
             }
