@@ -16,7 +16,7 @@ FROM nginx:alpine
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 4000
 
 # Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
