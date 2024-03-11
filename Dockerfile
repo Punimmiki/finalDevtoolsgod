@@ -1,19 +1,22 @@
 FROM node:latest as build
 
-WORKDIR /app
+WORKDIR /app/frontend
 
-COPY package.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 
 RUN npm install
 
-COPY . .
+COPY frontend .
 
 RUN npm run build
 
+# Stage 2: Build final image
 FROM nginx:alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
+# Expose port 80
 EXPOSE 80
 
+# Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
