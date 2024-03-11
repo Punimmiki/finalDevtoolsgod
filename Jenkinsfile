@@ -11,13 +11,13 @@ pipeline {
     stage('login docker') {
         steps {
             script {
-                sh 'docker login -u noychiffon05 -p dockerhubToken'
+                sh 'docker login -u noychiffon05 -p dckr_pat_Arx7L0phkQPnCxqBEKft-4kkYZw'
             }
         }
     }
     stage('Build docker') {
         steps {
-            dir('ชื่อกิดเบน') {
+            dir('finalDeltoolsgod') {
                     sh 'docker-compose build'
                 }
         }
@@ -29,7 +29,7 @@ pipeline {
     }
     stage('docker run image') {
         steps {
-            dir('ชื่อกิดเบน') {
+            dir('finalDeltoolsgod') {
                 sh "docker-compose up -d"
                 
             }
@@ -37,7 +37,7 @@ pipeline {
     }
     stage('check docker run image') {
         steps {
-            dir('ชื่อกิดเบน') {
+            dir('finalDeltoolsgod') {
                 sh "docker ps"
                 
             }
