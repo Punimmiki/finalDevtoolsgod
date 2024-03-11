@@ -1,22 +1,22 @@
-# Build Vue.js frontend
-FROM node:latest as frontend-build
+FROM node:latest as build
+
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
+
+COPY frontend/package.json frontend/package-lock.json ./
+
 RUN npm install
+
 COPY frontend .
+
 RUN npm run build
 
-# Build Node.js backend
-FROM node:latest as backend-build
-WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm install
-COPY backend .
-RUN npm run build
-
-# Final stage, serving both frontend and backend using Nginx
+# Stage 2: Build final image
 FROM nginx:alpine
-COPY --from=frontend-build /app/frontend/dist /usr/share/nginx/html
-COPY --from=backend-build /app/backend /usr/share/nginx/html/api
+
+COPY --from=build /app/frontend/ /usr/share/nginx/html
+
+# Expose port 80
 EXPOSE 80
+
+# Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
