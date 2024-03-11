@@ -17,7 +17,7 @@ pipeline {
     }
     stage('Build docker') {
         steps {
-            dir('finalDeltoolsgod') {
+            dir('finalDevtoolsgod') {
                     sh 'docker-compose build'
                 }
         }
@@ -29,7 +29,7 @@ pipeline {
     }
     stage('docker run image') {
         steps {
-            dir('finalDeltoolsgod') {
+            dir('finalDevtoolsgod') {
                 sh "docker-compose up -d"
                 
             }
@@ -37,7 +37,7 @@ pipeline {
     }
     stage('check docker run image') {
         steps {
-            dir('finalDeltoolsgod') {
+            dir('finalDevtoolsgod') {
                 sh "docker ps"
                 
             }
