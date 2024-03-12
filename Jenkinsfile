@@ -8,16 +8,6 @@ pipeline {
     }
 
     stages {
-        stage('Run Docker on Remote Server') {
-            steps {
-                sshagent([SSH_CREDENTIALS]) {
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker stop \$(docker ps -a -q) || true'"
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rm \$(docker ps -a -q) || true'"
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rmi \$(docker images -q) || true'"
- 
-                }
-            }
-        }
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USER')]) {
@@ -31,12 +21,20 @@ pipeline {
                 script {
                     // Build the Docker image
                     sh "docker build -t ${DOCKER_IMAGE} ."
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name ${DOCKER_IMAGE} -p 8085:80 $DOCKER_IMAGE'"
-                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -a'"
                 }
             }
         }
 
-        
+        stage('Run Docker on Remote Server') {
+            steps {
+                sshagent([SSH_CREDENTIALS]) {
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker stop \$(docker ps -a -q) || true'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rm \$(docker ps -a -q) || true'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker rmi \$(docker images -q) || true'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name fastapi-webhook -p 8085:80 $DOCKER_IMAGE'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -a'"
+                }
+            }
+        }
     }
 }
